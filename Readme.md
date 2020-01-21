@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Наиль Бадиуллин](https://up.htmlacademy.ru/javascript/19/user/1115009).
-* Наставник: `Неизвестно`.
+* Наставник: [Дмитрий Железцов](https://up.htmlacademy.ru/javascript/19/user/983299).
 
 ---
 
