@@ -1,6 +1,7 @@
 'use strict';
 
 var MAX_OBJECTS = 25;
+
 var NAMES = [
   'Валера',
   'Виталик',
@@ -9,6 +10,7 @@ var NAMES = [
   'Настя',
   'Алена',
 ];
+
 var COMMENTS = [
   'Всё отлично!',
   'В целом всё неплохо. Но не всё.',
@@ -18,8 +20,8 @@ var COMMENTS = [
   'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
 ];
 
-
 var POST_TEMPLATE = document.querySelector('#picture').content.children[0];
+var PICTURES_BLOCK = document.querySelector('.pictures');
 
 var generateArrayOfFlags = function (length) {
   var flags = [];
@@ -84,12 +86,10 @@ var createPhotoPost = function (photoData) {
 
 var createPicturesFeed = function (DOMElement, mock) {
   for (var i = 0; i < mock.length; i++) {
-    picturesBlock.appendChild(createPhotoPost(mock[i]));
+    DOMElement.appendChild(createPhotoPost(mock[i]));
   }
 };
 
 var posts = generateMockData(MAX_OBJECTS);
 
-var picturesBlock = document.querySelector('.pictures');
-
-createPicturesFeed(picturesBlock, posts);
+createPicturesFeed(PICTURES_BLOCK, posts);
