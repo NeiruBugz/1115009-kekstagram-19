@@ -22,6 +22,8 @@ var COMMENTS = [
 
 var POST_TEMPLATE = document.querySelector('#picture').content.children[0];
 var PICTURES_BLOCK = document.querySelector('.pictures');
+var BIG_PICTURE = document.querySelector('.big-picture');
+var BODY_SELECTOR = document.querySelector('body');
 
 var posts = [];
 var flags = [];
@@ -54,7 +56,7 @@ var pickRandomNumberWithRepeat = function (min, max) {
 var generateMockObject = function () {
   return {
     url: 'photos/' + pickRandomNumber(1, MAX_OBJECTS) + '.jpg',
-    description: '',
+    description: 'Балуемся с фотиком',
     likes: pickRandomNumberWithRepeat(15, 250),
     comments: [
       {
@@ -93,6 +95,35 @@ var createPicturesFeed = function (DOMElement, mock) {
   }
 };
 
+var fillBigPicturePost = function (index, mock, DOMElement) {
+  var bigPictureImage = DOMElement.querySelector('.big-picture__img');
+  bigPictureImage.children[0].src = mock[index].url;
+  var likesCount = DOMElement.querySelector('.likes-count');
+  likesCount.textContent = mock[index].likes;
+  var commentsCount = DOMElement.querySelector('.comments-count');
+  commentsCount.textContent = String(mock[index].comments.length);
+  var commentsList = DOMElement.querySelector('.social__comment');
+  for (var i = 0; i < mock[index].comments.length; i++) {
+    var commentAvatar = commentsList.querySelector('.social__picture');
+    commentAvatar.src = mock[index].comments[i].avatar;
+    commentAvatar.alt = mock[index].comments[i].name;
+    var commentContent = commentsList.querySelector('.social__text');
+    commentContent.textContent = mock[index].comments[i].message;
+  }
+
+  var socialCaption = DOMElement.querySelector('.social__caption');
+  socialCaption.textContent = mock[index].description;
+
+  var commentsCountGlobal = DOMElement.querySelector('.social__comment-count');
+  commentsCountGlobal.classList.add('hidden');
+  var commentsLoader = DOMElement.querySelector('.comments-loader');
+  commentsLoader.classList.add('hidden');
+};
+
 posts = generateMockData(MAX_OBJECTS);
 
 createPicturesFeed(PICTURES_BLOCK, posts);
+fillBigPicturePost(0, posts, BIG_PICTURE);
+
+BIG_PICTURE.classList.remove('hidden');
+BODY_SELECTOR.classList.add('modal-open');
