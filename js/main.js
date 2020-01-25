@@ -23,23 +23,26 @@ var COMMENTS = [
 var POST_TEMPLATE = document.querySelector('#picture').content.children[0];
 var PICTURES_BLOCK = document.querySelector('.pictures');
 
+var posts = [];
+var flags = [];
+
 var generateArrayOfFlags = function (length) {
-  var flags = [];
+  var resultFlags = [];
   for (var i = 0; i < length; i++) {
-    flags.push(false);
+    resultFlags.push(false);
   }
 
-  return flags;
+  return resultFlags;
 };
 
-var FLAGS = generateArrayOfFlags(MAX_OBJECTS);
+flags = generateArrayOfFlags(MAX_OBJECTS);
 
 var pickRandomNumber = function (min, max) {
   var index = Math.floor(min + Math.random() * (max + 1 - min));
-  if (FLAGS[index]) {
+  if (flags[index]) {
     return pickRandomNumber(min, max);
   } else {
-    FLAGS[index] = true;
+    flags[index] = true;
     return index;
   }
 };
@@ -90,6 +93,6 @@ var createPicturesFeed = function (DOMElement, mock) {
   }
 };
 
-var posts = generateMockData(MAX_OBJECTS);
+posts = generateMockData(MAX_OBJECTS);
 
 createPicturesFeed(PICTURES_BLOCK, posts);
