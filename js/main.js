@@ -1,6 +1,7 @@
 'use strict';
 
 var MAX_OBJECTS = 25;
+
 var DEFAULT_SCALE_VALUE = 100;
 var MAX_SCALE_VALUE = DEFAULT_SCALE_VALUE;
 var MIN_SCALE_VALUE = 25;
@@ -9,8 +10,12 @@ var currentScaleValue = DEFAULT_SCALE_VALUE;
 
 var MIN_HASHTAG_LENGTH = 1;
 var MAX_HASHTAG_LENGTH = 20;
-var MAX_HASHTAG_AMOUNT;
+var MAX_HASHTAG_AMOUNT = 5;
+
+var MAX_COMMENT_LENGTH = 140;
+
 var ESC_KEY = 'Escape';
+var ENTER_KEY = 'Enter';
 
 
 var NAMES = [
@@ -34,12 +39,193 @@ var COMMENTS = [
 var POST_TEMPLATE = document.querySelector('#picture').content.children[0];
 var PICTURES_BLOCK = document.querySelector('.pictures');
 var BIG_PICTURE = document.querySelector('.big-picture');
+var BIG_PICTURE_CLOSE = BIG_PICTURE.querySelector('#picture-cancel');
 var BODY_SELECTOR = document.querySelector('body');
 
+var posts = [];
+var flags = [];
+
+var generateArrayOfFlags = function (length) {
+  var resultFlags = [];
+  for (var i = 0; i < length; i++) {
+    resultFlags.push(false);
+  }
+
+  return resultFlags;
+};
+
+flags = generateArrayOfFlags(MAX_OBJECTS);
+
+var pickRandomNumber = function (min, max) {
+  var index = Math.floor(min + Math.random() * (max + 1 - min));
+  if (flags[index]) {
+    return pickRandomNumber(min, max);
+  } else {
+    flags[index] = true;
+    return index;
+  }
+};
+
+var pickRandomNumberWithRepeat = function (min, max) {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+};
+
+var generateMockObject = function () {
+  return {
+    url: 'photos/' + pickRandomNumber(1, MAX_OBJECTS) + '.jpg',
+    description: 'Балуемся с фотиком',
+    likes: pickRandomNumberWithRepeat(15, 250),
+    comments: [
+      {
+        avatar: 'img/avatar-' + pickRandomNumberWithRepeat(1, 6) + '.svg',
+        name: NAMES[pickRandomNumberWithRepeat(0, 5)],
+        message: COMMENTS[pickRandomNumberWithRepeat(0, 5)]
+      }
+    ],
+  };
+};
+
+var generateMockData = function (dataLength) {
+  var mock = [];
+  for (var i = 0; i < dataLength; i++) {
+    mock.push(generateMockObject());
+  }
+
+  return mock;
+};
+
+var createPhotoPost = function (photoData) {
+  var photoPost = POST_TEMPLATE.cloneNode(true);
+  var postPicture = photoPost.querySelector('.picture__img');
+  postPicture.src = photoData.url;
+  var postLikes = photoPost.querySelector('.picture__likes');
+  postLikes.textContent = photoData.likes;
+  var postComments = photoPost.querySelector('.picture__comments');
+  postComments.textContent = String(photoData.comments.length);
+
+  return photoPost;
+};
+
+var createPicturesFeed = function (DOMElement, mock) {
+  for (var i = 0; i < mock.length; i++) {
+    DOMElement.appendChild(createPhotoPost(mock[i]));
+  }
+};
+
+var fillBigPicturePost = function (index, mock, DOMElement) {
+  var bigPictureImage = DOMElement.querySelector('.big-picture__img');
+  bigPictureImage.children[0].src = mock[index].url;
+  var likesCount = DOMElement.querySelector('.likes-count');
+  likesCount.textContent = mock[index].likes;
+  var commentsCount = DOMElement.querySelector('.comments-count');
+  commentsCount.textContent = String(mock[index].comments.length);
+  var commentsList = DOMElement.querySelector('.social__comment');
+  for (var i = 0; i < mock[index].comments.length; i++) {
+    var commentAvatar = commentsList.querySelector('.social__picture');
+    commentAvatar.src = mock[index].comments[i].avatar;
+    commentAvatar.alt = mock[index].comments[i].name;
+    var commentContent = commentsList.querySelector('.social__text');
+    commentContent.textContent = mock[index].comments[i].message;
+  }
+
+  var socialCaption = DOMElement.querySelector('.social__caption');
+  socialCaption.textContent = mock[index].description;
+
+  var commentsCountGlobal = DOMElement.querySelector('.social__comment-count');
+  commentsCountGlobal.classList.add('hidden');
+  var commentsLoader = DOMElement.querySelector('.comments-loader');
+  commentsLoader.classList.add('hidden');
+};
+
+posts = generateMockData(MAX_OBJECTS);
+
+createPicturesFeed(PICTURES_BLOCK, posts);
+fillBigPicturePost(0, posts, BIG_PICTURE);
+
+var createBigPhotoView = function (DOMElement, source) {
+  var bigPhotoImage = DOMElement.querySelector('.big-picture__img img');
+  var bigPhotoLikes = DOMElement.querySelector('.likes-count');
+  var bigPhotoCommentsCount = DOMElement.querySelector('.comments-count');
+
+  bigPhotoImage.src = source.url;
+  bigPhotoLikes.textContent = source.likes;
+  bigPhotoCommentsCount.textContent = String(source.comments.length);
+};
+
+var createBigPhotoComments = function (DOMElement, source) {
+  var commentsList = DOMElement.querySelector('.social__comment');
+  for (var i = 0; i < source.comments.length; i++) {
+    var commentAvatar = commentsList.querySelector('.social__picture');
+    commentAvatar.src = source.comments[i].avatar;
+    commentAvatar.alt = source.comments[i].name;
+    var commentContent = commentsList.querySelector('.social__text');
+    commentContent.textContent = source.comments[i].message;
+  }
+};
+
+var onPhotoClick = function (evt) {
+  var photo = evt.target.closest('.picture');
+  if (photo) {
+    var photoImg = photo.querySelector('.picture__img');
+    if (photoImg) {
+      for (var i = 0; i < posts.length; i++) {
+        if (photoImg.src.includes(posts[i].url)) {
+          createBigPhotoView(BIG_PICTURE, posts[i]);
+          createBigPhotoComments(BIG_PICTURE, posts[i]);
+          BIG_PICTURE.classList.remove('hidden');
+          return;
+        }
+      }
+    }
+  }
+};
+
+var closePhoto = function () {
+  BIG_PICTURE.classList.add('hidden');
+};
+
+PICTURES_BLOCK.addEventListener('click', function (evt) {
+  onPhotoClick(evt);
+});
+
+PICTURES_BLOCK.addEventListener('keydown', function (evt) {
+  if (evt.key === ENTER_KEY) {
+    onPhotoClick(evt);
+  }
+});
+
+BIG_PICTURE_CLOSE.addEventListener('click', closePhoto);
+document.addEventListener('keydown', function (evt) {
+  if (evt.key === ESC_KEY) {
+    closePhoto();
+  }
+});
 var uploadFile = document.querySelector('#upload-file');
 var cancelUpload = document.querySelector('#upload-cancel');
 var photoEditDialog = document.querySelector('.img-upload__overlay');
 var photoHashtags = photoEditDialog.querySelector('.text__hashtags');
+var photoComment = BIG_PICTURE.querySelector('.social__footer-text');
+
+var commentValidation = function (comment) {
+  if (comment.length > MAX_COMMENT_LENGTH) {
+    return 'Длина комментария не должна превышать 140 символов';
+  }
+
+  return '';
+};
+
+photoComment.addEventListener('input', function (evt) {
+  var inputElement = evt.target;
+  var inputValue = inputElement.value;
+
+  if (inputValue.length <= 0) {
+    return;
+  }
+
+  var errorMessage = commentValidation(inputValue);
+  inputElement.setCustomValidity(errorMessage);
+  inputElement.reportValidity();
+});
 
 var hashtagsValidation = function (hashtags) {
   if (hashtags.length > MAX_HASHTAG_AMOUNT) {
@@ -217,107 +403,6 @@ var switchFilter = function (control) {
 for (var k = 0; k < effectsControls.length; k++) {
   switchFilter(effectsControls[k]);
 }
-
-
-var posts = [];
-var flags = [];
-
-var generateArrayOfFlags = function (length) {
-  var resultFlags = [];
-  for (var i = 0; i < length; i++) {
-    resultFlags.push(false);
-  }
-
-  return resultFlags;
-};
-
-flags = generateArrayOfFlags(MAX_OBJECTS);
-
-var pickRandomNumber = function (min, max) {
-  var index = Math.floor(min + Math.random() * (max + 1 - min));
-  if (flags[index]) {
-    return pickRandomNumber(min, max);
-  } else {
-    flags[index] = true;
-    return index;
-  }
-};
-
-var pickRandomNumberWithRepeat = function (min, max) {
-  return Math.floor(min + Math.random() * (max + 1 - min));
-};
-
-var generateMockObject = function () {
-  return {
-    url: 'photos/' + pickRandomNumber(1, MAX_OBJECTS) + '.jpg',
-    description: 'Балуемся с фотиком',
-    likes: pickRandomNumberWithRepeat(15, 250),
-    comments: [
-      {
-        avatar: 'img/avatar-' + pickRandomNumberWithRepeat(1, 6) + '.svg',
-        name: NAMES[pickRandomNumberWithRepeat(0, 5)],
-        message: COMMENTS[pickRandomNumberWithRepeat(0, 5)]
-      }
-    ],
-  };
-};
-
-var generateMockData = function (dataLength) {
-  var mock = [];
-  for (var i = 0; i < dataLength; i++) {
-    mock.push(generateMockObject());
-  }
-
-  return mock;
-};
-
-var createPhotoPost = function (photoData) {
-  var photoPost = POST_TEMPLATE.cloneNode(true);
-  var postPicture = photoPost.querySelector('.picture__img');
-  postPicture.src = photoData.url;
-  var postLikes = photoPost.querySelector('.picture__likes');
-  postLikes.textContent = photoData.likes;
-  var postComments = photoPost.querySelector('.picture__comments');
-  postComments.textContent = photoData.comments.length;
-
-  return photoPost;
-};
-
-var createPicturesFeed = function (DOMElement, mock) {
-  for (var i = 0; i < mock.length; i++) {
-    DOMElement.appendChild(createPhotoPost(mock[i]));
-  }
-};
-
-var fillBigPicturePost = function (index, mock, DOMElement) {
-  var bigPictureImage = DOMElement.querySelector('.big-picture__img');
-  bigPictureImage.children[0].src = mock[index].url;
-  var likesCount = DOMElement.querySelector('.likes-count');
-  likesCount.textContent = mock[index].likes;
-  var commentsCount = DOMElement.querySelector('.comments-count');
-  commentsCount.textContent = String(mock[index].comments.length);
-  var commentsList = DOMElement.querySelector('.social__comment');
-  for (var i = 0; i < mock[index].comments.length; i++) {
-    var commentAvatar = commentsList.querySelector('.social__picture');
-    commentAvatar.src = mock[index].comments[i].avatar;
-    commentAvatar.alt = mock[index].comments[i].name;
-    var commentContent = commentsList.querySelector('.social__text');
-    commentContent.textContent = mock[index].comments[i].message;
-  }
-
-  var socialCaption = DOMElement.querySelector('.social__caption');
-  socialCaption.textContent = mock[index].description;
-
-  var commentsCountGlobal = DOMElement.querySelector('.social__comment-count');
-  commentsCountGlobal.classList.add('hidden');
-  var commentsLoader = DOMElement.querySelector('.comments-loader');
-  commentsLoader.classList.add('hidden');
-};
-
-posts = generateMockData(MAX_OBJECTS);
-
-createPicturesFeed(PICTURES_BLOCK, posts);
-fillBigPicturePost(0, posts, BIG_PICTURE);
 
 // BIG_PICTURE.classList.remove('hidden');
 BODY_SELECTOR.classList.add('modal-open');
