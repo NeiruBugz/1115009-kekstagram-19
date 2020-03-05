@@ -6,6 +6,10 @@ var MAX_SCALE_VALUE = DEFAULT_SCALE_VALUE;
 var MIN_SCALE_VALUE = 25;
 var SCALE_STEP = 25;
 var currentScaleValue = DEFAULT_SCALE_VALUE;
+
+var MIN_HASHTAG_LENGTH = 1;
+var MAX_HASHTAG_LENGTH = 20;
+var MAX_HASHTAG_AMOUNT;
 var ESC_KEY = 'Escape';
 
 
@@ -36,10 +40,9 @@ var uploadFile = document.querySelector('#upload-file');
 var cancelUpload = document.querySelector('#upload-cancel');
 var photoEditDialog = document.querySelector('.img-upload__overlay');
 var photoHashtags = photoEditDialog.querySelector('.text__hashtags');
-var photoDescription = photoEditDialog.querySelector('.text__description');
 
 var hashtagsValidation = function (hashtags) {
-  if (hashtags.length > 5) {
+  if (hashtags.length > MAX_HASHTAG_AMOUNT) {
     return 'Нельзя указать больше пяти хэш-тегов';
   }
 
@@ -48,7 +51,7 @@ var hashtagsValidation = function (hashtags) {
     if (hashtag[0] !== '#') {
       return 'Укажите символ # в начале хэштега';
     }
-    if (hashtag.length <= 1 || hashtag.length > 20) {
+    if (hashtag.length <= MIN_HASHTAG_LENGTH || hashtag.length > MAX_HASHTAG_LENGTH) {
       return 'Длина хэштега должна быть от 1 до 20 символов';
     }
     var hashtagValidator = hashtag.match(new RegExp('[\\d\\wа-я]', 'ug')) || [];
