@@ -1,6 +1,7 @@
 'use strict';
 
 var MAX_OBJECTS = 25;
+
 var DEFAULT_SCALE_VALUE = 100;
 var MAX_SCALE_VALUE = DEFAULT_SCALE_VALUE;
 var MIN_SCALE_VALUE = 25;
@@ -9,8 +10,12 @@ var currentScaleValue = DEFAULT_SCALE_VALUE;
 
 var MIN_HASHTAG_LENGTH = 1;
 var MAX_HASHTAG_LENGTH = 20;
-var MAX_HASHTAG_AMOUNT;
+var MAX_HASHTAG_AMOUNT = 5;
+
+var MAX_COMMENT_LENGTH = 140;
+
 var ESC_KEY = 'Escape';
+var ENTER_KEY = 'Enter';
 
 
 var NAMES = [
@@ -34,6 +39,7 @@ var COMMENTS = [
 var POST_TEMPLATE = document.querySelector('#picture').content.children[0];
 var PICTURES_BLOCK = document.querySelector('.pictures');
 var BIG_PICTURE = document.querySelector('.big-picture');
+var BIG_PICTURE_CLOSE = BIG_PICTURE.querySelector('#picture-cancel');
 var BODY_SELECTOR = document.querySelector('body');
 
 var posts = [];
@@ -95,7 +101,7 @@ var createPhotoPost = function (photoData) {
   var postLikes = photoPost.querySelector('.picture__likes');
   postLikes.textContent = photoData.likes;
   var postComments = photoPost.querySelector('.picture__comments');
-  postComments.textContent = photoData.comments.length;
+  postComments.textContent = String(photoData.comments.length);
 
   return photoPost;
 };
@@ -136,10 +142,90 @@ posts = generateMockData(MAX_OBJECTS);
 createPicturesFeed(PICTURES_BLOCK, posts);
 fillBigPicturePost(0, posts, BIG_PICTURE);
 
+var createBigPhotoView = function (DOMElement, source) {
+  var bigPhotoImage = DOMElement.querySelector('.big-picture__img img');
+  var bigPhotoLikes = DOMElement.querySelector('.likes-count');
+  var bigPhotoCommentsCount = DOMElement.querySelector('.comments-count');
+
+  bigPhotoImage.src = source.url;
+  bigPhotoLikes.textContent = source.likes;
+  bigPhotoCommentsCount.textContent = String(source.comments.length);
+};
+
+var createBigPhotoComments = function (DOMElement, source) {
+  var commentsList = DOMElement.querySelector('.social__comment');
+  for (var i = 0; i < source.comments.length; i++) {
+    var commentAvatar = commentsList.querySelector('.social__picture');
+    commentAvatar.src = source.comments[i].avatar;
+    commentAvatar.alt = source.comments[i].name;
+    var commentContent = commentsList.querySelector('.social__text');
+    commentContent.textContent = source.comments[i].message;
+  }
+};
+
+var onPhotoClick = function (evt) {
+  var photo = evt.target.closest('.picture');
+  if (photo) {
+    var photoImg = photo.querySelector('.picture__img');
+    if (photoImg) {
+      for (var i = 0; i < posts.length; i++) {
+        if (photoImg.src.includes(posts[i].url)) {
+          createBigPhotoView(BIG_PICTURE, posts[i]);
+          createBigPhotoComments(BIG_PICTURE, posts[i]);
+          BIG_PICTURE.classList.remove('hidden');
+          return;
+        }
+      }
+    }
+  }
+};
+
+var closePhoto = function () {
+  BIG_PICTURE.classList.add('hidden');
+};
+
+PICTURES_BLOCK.addEventListener('click', function (evt) {
+  onPhotoClick(evt);
+});
+
+PICTURES_BLOCK.addEventListener('keydown', function (evt) {
+  if (evt.key === ENTER_KEY) {
+    onPhotoClick(evt);
+  }
+});
+
+BIG_PICTURE_CLOSE.addEventListener('click', closePhoto);
+document.addEventListener('keydown', function (evt) {
+  if (evt.key === ESC_KEY) {
+    closePhoto();
+  }
+});
 var uploadFile = document.querySelector('#upload-file');
 var cancelUpload = document.querySelector('#upload-cancel');
 var photoEditDialog = document.querySelector('.img-upload__overlay');
 var photoHashtags = photoEditDialog.querySelector('.text__hashtags');
+var photoComment = BIG_PICTURE.querySelector('.social__footer-text');
+
+var commentValidation = function (comment) {
+  if (comment.length > MAX_COMMENT_LENGTH) {
+    return 'Длина комментария не должна превышать 140 символов';
+  }
+
+  return '';
+};
+
+photoComment.addEventListener('input', function (evt) {
+  var inputElement = evt.target;
+  var inputValue = inputElement.value;
+
+  if (inputValue.length <= 0) {
+    return;
+  }
+
+  var errorMessage = commentValidation(inputValue);
+  inputElement.setCustomValidity(errorMessage);
+  inputElement.reportValidity();
+});
 
 var hashtagsValidation = function (hashtags) {
   if (hashtags.length > MAX_HASHTAG_AMOUNT) {
