@@ -67,9 +67,14 @@
     }
   };
 
+  var getPhotos = function (data) {
+    createPicturesFeed(window.utils.PICTURES_BLOCK, data);
+    posts = data;
+  };
 
-  createPicturesFeed(window.utils.PICTURES_BLOCK, posts);
+  window.httpService.load(getPhotos);
 
+  // createPicturesFeed(window.utils.PICTURES_BLOCK, posts);
   window.gallery = {
     posts: posts,
   };
