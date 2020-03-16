@@ -68,8 +68,9 @@
   };
 
 
-  createPicturesFeed(window.utils.PICTURES_BLOCK, posts);
+  window.httpService.load(null, null);
 
+  createPicturesFeed(window.utils.PICTURES_BLOCK, posts);
   window.gallery = {
     posts: posts,
   };
